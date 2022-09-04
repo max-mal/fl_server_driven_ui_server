@@ -19,7 +19,7 @@ def menus(request):
                 'padding': 5,
                 'child': {
                     'type': 'container',
-                    'padding': 20,                
+                    'padding': 20,
                     'border': {
                         'all': {
                             'color': '#ffffff',
@@ -57,10 +57,10 @@ def on_request(request: HttpRequest):
     for app in settings.REGISTERED_APPS:
         if app['id'] == app_id:
             registered_app = app
-    
+
     if registered_app is None:
         raise Exception(f"Failed to find app with id {app_id}")
-    request_url = f"{app['server_url']}{parsed_uri.path}?{parsed_uri.query}"
+    request_url = f"{registered_app['server_url']}{parsed_uri.path}?{parsed_uri.query}"
     print(f"Requesting resource: {request_url}")
     response = requests.get(request_url)
     return JsonResponse(response.json(), safe=False)

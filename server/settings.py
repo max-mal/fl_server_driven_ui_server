@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'files',    
+    'files',
+    'youtube',
 ]
 
 MIDDLEWARE = [
@@ -128,7 +129,11 @@ REGISTERED_APPS = [
     {
         "id": "files.internal",
         "server_url": "http://127.0.0.1:8000/files",
-    }
+    },
+    {
+        "id": "youtube.internal",
+        "server_url": "http://127.0.0.1:8000/youtube",
+    },
 ]
 
 REGISTERED_MENUS = [
@@ -136,5 +141,10 @@ REGISTERED_MENUS = [
         "id": "sdr://files.internal/",
         "name": "Files",
         "server_url": "http://127.0.0.1:8000/files",
+    },
+    {
+        "id": "sdr://youtube.internal/",
+        "name": "Youtube",
+        "server_url": "http://127.0.0.1:8000/youtube",
     }
 ]

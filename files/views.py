@@ -45,7 +45,10 @@ def _single_file(path, object_path):
         file = open(object_path, 'r')
         return _single_file_response(path, {
             'type': 'text',
-            'text': file.read(),
+            'text': {
+                '_v': 'raw',
+                'value': file.read(),
+            },
         })
 
     if str(mimetype).startswith("video/") :
@@ -88,8 +91,8 @@ def index(request: HttpRequest):
 
 
     contents = os.listdir(object_path)
-    contents.insert(0, '..')
-    children = []    
+    contents.insert(0, '..')    
+    files_data = []    
 
     for file in contents:
         if file.startswith('.') and file != '..':
@@ -102,50 +105,57 @@ def index(request: HttpRequest):
         if os.path.isfile(f"{directory}/{file}"):
             type = "file"
 
-        children.append({
-            'type': 'inkwell',
-            '@click': {
-                '_': 'sdr_request',
-                'uri': f'sdr://files.internal?path={path}/{file}'
-            },
-            'child': {
-                'type': 'container',
-                'padding': 10,
-                'margin': 10,
-                'border': {
-                    'bottom': {
-                        'color': '#ffffff',
-                        'width': 1,
-                    }
-                },
-                'child': {
-                    'type': 'text',
-                    'text': file,
-                    'fontSize': 16,                    
-                }
-            }
+        files_data.append({
+            'name': file,
+            'type': type,
+            'path': f"{path}/{file}",
         })
 
     return JsonResponse({
-        "areas": {
-            # "files.internal__file": {
-            #     'type': 'text',
-            #     'text': 'No file selected',
-            #     'fontSize': 20,            
-            # },
-            "main": {                
+        "areas": {            
+            "main": {   
+                '$' : {
+                    'files' : files_data,
+                },
                 'type': 'row',                       
                 'children': [
                     {
                         'type': 'expanded',
                         'child': {
-                            'type': 'scroll',
-                            'key': 'scroll_main',
+                            'type': 'list_builder',
+                            'items': {
+                                '_v': '$files',
+                            },                            
                             'child': {
-                                'type': 'column',
-                                'children': children,
+                                'type': 'inkwell',
+                                '@click': {
+                                    '_': 'sdr_request',
+                                    'uri': {
+                                        '_v': 'interpolate',
+                                        'value': 'sdr://files.internal?path=$item.path',
+                                    }
+                                },
+                                'child': {
+                                    'type': 'container',
+                                    'padding': 10,
+                                    'margin': 10,
+                                    'border': {
+                                        'bottom': {
+                                            'color': '#ffffff',
+                                            'width': 1,
+                                        }
+                                    },
+                                    'child': {
+                                        'type': 'text',
+                                        'text': {
+                                            '_v': '$item.name',
+                                        },
+                                        'fontSize': 16,                    
+                                    }
+                                }
                             },
-                        }
+                        },
+                        
                     },
                     {
                         'type': 'container',
