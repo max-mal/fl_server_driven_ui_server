@@ -29,3 +29,21 @@ class YoutubeService:
             )
 
         return request.execute()
+
+    def get(self, id: str) -> tuple[dict, dict]:
+        request = self.get_client().videos().list(
+            part="snippet,contentDetails,statistics",
+            id=id,
+        )
+
+        video = request.execute()['items'][0]
+
+        # request = self.get_client().commentThreads().list(
+        #     part="snippet,replies",
+        #     videoId=id,
+        # )
+
+        # comments = request.execute()['items']
+
+        return video
+

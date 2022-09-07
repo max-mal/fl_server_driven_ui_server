@@ -1,4 +1,6 @@
 from django.http import JsonResponse, HttpRequest
+
+from youtube.templates import video_item_template, video_preview_template, videos_area
 from .services import YoutubeService
 from server import settings
 import os
@@ -31,221 +33,16 @@ def index(request: HttpRequest):
             })
         except Exception as e:
             print(e)
-            # print(item)
 
     return JsonResponse({
         "templates": {
-            "yt_video": {
-                'type': 'inkwell',
-                '@click': [
-                    {
-                        '_': 'sdr_request',
-                        'uri': {
-                            '_v': 'interpolate',
-                            'value': 'sdr://youtube.internal/video?id=$item.id&quality=$$quality&subtitles=$$subtitles',
-                        }
-                    },
-                    {
-                        '_': 'open_dialog',
-                        'child': {
-                            'type': 'alert_dialog',
-                            'title': {
-                                'type': 'text',
-                                'text': 'Launching video',
-                            },
-                            'child': {
-                                'type': 'text',
-                                'text': 'Please wait, getting url and launching video in player',
-                            }
-                        }
-                    },
-                ],
-                'child': {
-                    'type': 'row',
-                    'children': [
-                        {
-                            'type': 'image',
-                            'source': 'network',
-                            'value': {
-                                '_v': '$item.thumbnail'
-                            },
-                            'width': 320.0,
-                            'height': 180.0,
-                        },
-                        {
-                            'type': 'sized_box',
-                            'width': 10.0,
-                        },
-                        {
-                            'type': 'expanded',
-                            'child': {
-                                'type': 'column',
-                                'children': [
-                                    {
-                                        'type': 'sized_box',
-                                        'height': 5.0,
-                                    },
-                                    {
-                                        'type': 'text',
-                                        'text': {
-                                            '_v': '$item.title'
-                                        }
-                                    },
-                                    {
-                                        'type': 'sized_box',
-                                        'height': 10.0,
-                                    },
-                                    {
-                                        'type': 'text',
-                                        'text': {
-                                            '_v': '$item.shortDescription'
-                                        }
-                                    },
-                                ],
-                            }
-                        }
-                    ],
-                },
-            }
+            "yt_video": video_item_template(),
         },
         "areas": {
-            "main": {
-                '$' : {
-                    'videos' : videos_data,
-                    'onSearch': {
-                        '_': 'sdr_request',
-                        'uri': {
-                            '_v': 'interpolate',
-                            'value': 'sdr://youtube.internal/?search=$$search&quality=$$quality&subtitles=$$subtitles',
-                        },
-                    }
-                },
-                '$$': {
-                    'search': search,
-                    'quality': quality,
-                    'subtitles': subtitles,
-                },
-                'type': 'column',
-                'children': [
-                    {
-                        'type': 'container',
-                        'border': {
-                            'all': {
-                                'color': '#ffffff',
-                            },
-                        },
-                        'padding': 10,
-                        'margin': 5,
-                        'child': {
-                            'type': 'row',
-                            'crossAxisAlignment': 'center',
-                            'children': [
-                                {
-                                    'type': 'expanded',
-                                    'child': {
-                                        'type': 'text_field',
-                                        'hint': 'Search',
-                                        '@changed': {
-                                            '_': 'set_variable',
-                                            'name': 'search',
-                                            'value': {
-                                                '_v': '$value',
-                                            }
-                                        },
-                                        '@submit': {
-                                            '_v': '$onSearch',
-                                        },
-                                        'max_lines': 1,
-                                        'value': {
-                                            '_v': '$$search',
-                                        }
-                                    },
-                                },
-                                {
-                                    'type': 'text',
-                                    'text': 'Quality:',
-                                },
-                                {
-                                    'type': '$dropdown_button',
-                                    'value': {
-                                        '_v': '$$quality',
-                                    },
-                                    'options': {
-                                        'best': 'Best',
-                                        'best[height<=720]': '720p',
-                                        'best[height<=480]': '480p',
-                                        'best[height<=240]': '240p',
-                                    },
-                                    '@changed': {
-                                        '_': 'set_variable',
-                                        'name': 'quality',
-                                        'value': {
-                                            '_v': '$value',
-                                        }
-                                    }
-                                },
-                                {
-                                    'type': 'sized_box',
-                                    'width': 10.0,
-                                },
-                                {
-                                    'type': 'text',
-                                    'text': 'Subtitles:',
-                                },
-                                {
-                                    'type': '$dropdown_button',
-                                    'value': {
-                                        '_v': '$$subtitles',
-                                    },
-                                    'options': {
-                                        'ru,en': 'On',
-                                        'en': 'English',
-                                        'ru': 'Russian',
-                                        '': 'Off',
-                                    },
-                                    '@changed': {
-                                        '_': 'set_variable',
-                                        'name': 'subtitles',
-                                        'value': {
-                                            '_v': '$value',
-                                        }
-                                    }
-                                },
-                                {
-                                    'type': 'sized_box',
-                                    'width': 10.0,
-                                },
-                                {
-                                    'type': 'inkwell',
-                                    '@click': {
-                                       '_v': '$onSearch',
-                                    },
-                                    'child': {
-                                        'type': 'icon',
-                                        'icon': 'search',
-                                    },
-                                }
-                            ],
-                        }
-                    },
-                    {
-                        'type': 'expanded',
-                        'child': {
-                            'type': 'list_builder',
-                            'items': {
-                                '_v': '$videos',
-                            },
-                            'child': {
-                                'type': 'padding',
-                                'padding': 10,
-                                'child': {
-                                    'type': 'yt_video',
-                                },
-                            },
-                        }
-                    }
-                ],
-            }
+            'youtube.video': {
+                'type': 'sized_box',
+            },
+            "main": videos_area(videos_data, search, quality, subtitles),
         },
     }, safe=False)
 
@@ -304,3 +101,18 @@ def video(request: HttpRequest):
             }
         ],
     })
+
+def video_preview(request: HttpRequest):
+    id = request.GET.get('id')
+    external = request.GET.get('external', None)
+    video = service.get(id)
+
+    area_id = "youtube.video"
+    if external is not None:
+        area_id = "main"
+
+    return JsonResponse({
+       'areas': {
+           area_id: video_preview_template(video),
+       }
+    }, safe=False)

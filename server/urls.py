@@ -21,4 +21,5 @@ urlpatterns = [
     path('files/', include('files.urls')),
     path('main/', include('main.urls')),
     path('youtube/', include('youtube.urls')),
+    path('duck2go/', include('duck2go.urls')),
 ]

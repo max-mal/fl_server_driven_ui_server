@@ -1,9 +1,11 @@
+import subprocess
 from django.shortcuts import render
 from django.http import JsonResponse, HttpRequest
 import os
 from pathlib import Path
 import magic
 import shlex
+from .templates import files_area
 
 def _single_file_response(path, widget):
     if widget is None:
@@ -17,20 +19,43 @@ def _single_file_response(path, widget):
                 'type': 'column',
                 'children': [
                     {
-                        'type': 'text',
-                        'text': path,
+                        'type': 'row',
+                        'mainAxisAlignment': 'space_around',
+                        'children': [
+                            {
+                                'type': 'expanded',
+                                'child': {
+                                    'type': 'text',
+                                    'text': path,
+                                }
+                            },
+                            {
+                                'type': 'inkwell',
+                                '@click': {
+                                    '_': 'sdr_request',
+                                    'uri': {
+                                        '_v': 'interpolate',
+                                        'value': 'sdr://files.internal/open?path=' + path,
+                                    }
+                                },
+                                'child': {
+                                    'type': 'text',
+                                    'text': 'open',
+                                }
+                            }
+                        ],
                     },
                     {
                         'type': 'divider',
                         'color': '#ffffff',
                     },
-                    widget,                    
+                    widget,
                 ],
             }
         }
-    }, safe=False)    
+    }, safe=False)
 
-def _single_file(path, object_path):   
+def _single_file(path, object_path):
 
     mimetype = magic.from_file(object_path, mime=True)
     print(mimetype)
@@ -39,7 +64,7 @@ def _single_file(path, object_path):
             'type': 'image',
             'source': 'file',
             'value': object_path,
-        })       
+        })
 
     if str(mimetype).startswith("text/") :
         file = open(object_path, 'r')
@@ -56,19 +81,19 @@ def _single_file(path, object_path):
         return _single_file_response(path, {
             'type': 'text',
             'text': 'Opening in mpv...',
-        })         
+        })
 
-    if str(mimetype).startswith("audio/") :    
+    if str(mimetype).startswith("audio/") :
         return _single_file_response(path, {
             'type': 'audio_player',
             'path': f'file://{object_path}'
-        })                
-    
+        })
+
     os.system(f'xdg-open {shlex.quote(object_path)}')
     return _single_file_response(path, {
         'type': 'text',
         'text': 'Opening with xdg...',
-    }) 
+    })
 
 def index(request: HttpRequest):
     directory = Path.home()
@@ -78,7 +103,7 @@ def index(request: HttpRequest):
 
     if os.path.isfile(object_path):
         return _single_file(path, object_path)
-    
+
     if not os.path.isdir(object_path):
         return JsonResponse({
             "areas": {
@@ -91,8 +116,8 @@ def index(request: HttpRequest):
 
 
     contents = os.listdir(object_path)
-    contents.insert(0, '..')    
-    files_data = []    
+    contents.insert(0, '..')
+    files_data = []
 
     for file in contents:
         if file.startswith('.') and file != '..':
@@ -112,80 +137,29 @@ def index(request: HttpRequest):
         })
 
     return JsonResponse({
-        "areas": {            
-            "main": {   
-                '$' : {
-                    'files' : files_data,
-                },
-                'type': 'row',                       
-                'children': [
-                    {
-                        'type': 'expanded',
-                        'child': {
-                            'type': 'list_builder',
-                            'items': {
-                                '_v': '$files',
-                            },                            
-                            'child': {
-                                'type': 'inkwell',
-                                '@click': {
-                                    '_': 'sdr_request',
-                                    'uri': {
-                                        '_v': 'interpolate',
-                                        'value': 'sdr://files.internal?path=$item.path',
-                                    }
-                                },
-                                'child': {
-                                    'type': 'container',
-                                    'padding': 10,
-                                    'margin': 10,
-                                    'border': {
-                                        'bottom': {
-                                            'color': '#ffffff',
-                                            'width': 1,
-                                        }
-                                    },
-                                    'child': {
-                                        'type': 'text',
-                                        'text': {
-                                            '_v': '$item.name',
-                                        },
-                                        'fontSize': 16,                    
-                                    }
-                                }
-                            },
-                        },
-                        
-                    },
-                    {
-                        'type': 'container',
-                        'width': 1.0,
-                        "height": 350.0,
-                        'border': {
-                            'all': {
-                                'color': '#ffffff',
-                                'width': 1,
-                            }
-                        },
-                    },
-                    {
-                        'type': 'expanded',
-                        'flex': 2,
-                        'child': {
-                            'type': 'padding',
-                            'padding': 20,
-                            'child': {
-                                'type': 'scroll',
-                                'key': 'scroll_file',
-                                'child': {
-                                    'type': 'sdr_area',
-                                    'area_id': 'files.internal__file',
-                                }
-                            }
-                        }
-                    }
-                ],                
-            }
-        },        
+        "areas": {
+            "main": files_area(files_data, path),
+        },
     }, safe=False)
 
+def open_feh(request: HttpRequest):
+    directory = Path.home()
+    path = request.GET.get('path', '')
+    path = os.path.normpath(path)
+
+    object_path = str(directory) + "/" + path
+
+    subprocess.Popen(['feh', object_path])
+
+    return JsonResponse({})
+
+def open_path(request: HttpRequest):
+    directory = Path.home()
+    path = request.GET.get('path', '')
+    path = os.path.normpath(path)
+
+    object_path = str(directory) + "/" + path
+
+    subprocess.Popen(['xdg-open', object_path])
+
+    return JsonResponse({})

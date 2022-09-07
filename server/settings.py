@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'main',
     'files',
     'youtube',
+    'duck2go',
 ]
 
 MIDDLEWARE = [
@@ -134,17 +135,50 @@ REGISTERED_APPS = [
         "id": "youtube.internal",
         "server_url": "http://127.0.0.1:8000/youtube",
     },
+    {
+        "id": "main",
+        "server_url": "http://127.0.0.1:8000/main",
+    },
+    {
+        "id": "duck2go.internal",
+        "server_url": "http://127.0.0.1:8000/duck2go",
+    }
 ]
 
 REGISTERED_MENUS = [
+    {
+        "id": "sdr://main/apps",
+        "name": "Apps",
+        "server_url": "http://127.0.0.1:8000/main/apps",
+    },
     {
         "id": "sdr://files.internal/",
         "name": "Files",
         "server_url": "http://127.0.0.1:8000/files",
     },
     {
+        "id": "sdr://main/network",
+        "name": "Network",
+        "server_url": "http://127.0.0.1:8000/main/network",
+    },
+    {
         "id": "sdr://youtube.internal/",
         "name": "Youtube",
         "server_url": "http://127.0.0.1:8000/youtube",
     }
+]
+
+REGISTERED_NETWORK_APPS = [
+    {
+        "name": "Youtube",
+        "url": "sdr://youtube.internal/"
+    },
+    {
+        "name": "DuckDuckGo Search",
+        "url": "sdr://duck2go.internal"
+    },
+    {
+        "name": "DuckDuckGo Images",
+        "url": "sdr://duck2go.internal/images"
+    },
 ]
